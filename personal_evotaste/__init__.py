@@ -8,6 +8,7 @@ from .exceptions import (
     PersonalEvoTasteError,
     StorageError,
 )
+from .exporters import SUPPORTED_FORMATS, render_rules
 from .extractors import CallableExtractor, HeuristicExtractor, RuleExtractor
 from .models import FeedbackEvent, TasteMemory, TasteRule
 from .storage import BaseStorage, JSONStorage, SQLiteStorage, YAMLStorage
@@ -29,5 +30,7 @@ __all__ = [
     "StorageError",
     "ExtractionError",
     "ConfigurationError",
+    "render_rules",
+    "SUPPORTED_FORMATS",
     "__version__",
 ]

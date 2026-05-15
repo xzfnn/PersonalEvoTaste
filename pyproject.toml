@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "personal-evotaste"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Developer personal-taste memory & self-evolution engine for AI coding agents."
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.9"
 authors = [
-    { name = "PersonalEvoTaste Contributors" },
+    { name = "xzfnn" },
 ]
 keywords = ["ai", "agents", "memory", "preferences", "self-evolution", "prompt-engineering"]
 classifiers = [
@@ -37,12 +37,15 @@ dev = [
     "ruff>=0.4",
     "mypy>=1.6",
 ]
+semantic = [
+    "sentence-transformers>=2.7",
+]
 
 [project.urls]
-Homepage = "https://github.com/your-org/PersonalEvoTaste"
-Issues = "https://github.com/your-org/PersonalEvoTaste/issues"
-Documentation = "https://github.com/your-org/PersonalEvoTaste#readme"
-Changelog = "https://github.com/your-org/PersonalEvoTaste/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/xzfnn/PersonalEvoTaste"
+Issues = "https://github.com/xzfnn/PersonalEvoTaste/issues"
+Documentation = "https://github.com/xzfnn/PersonalEvoTaste#readme"
+Changelog = "https://github.com/xzfnn/PersonalEvoTaste/blob/main/CHANGELOG.md"
 
 [project.scripts]
 personal-evotaste = "personal_evotaste.cli:main"
@@ -50,6 +53,9 @@ personal-evotaste = "personal_evotaste.cli:main"
 [tool.setuptools.packages.find]
 include = ["personal_evotaste*"]
 exclude = ["tests*", "examples*"]
+
+[tool.setuptools.dynamic]
+version = { attr = "personal_evotaste.version.__version__" }
 
 [tool.pytest.ini_options]
 addopts = "-ra --strict-markers"

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -63,11 +63,15 @@ class FeedbackEvent(BaseModel):
 class TasteMemory(BaseModel):
     """Top-level container persisted to disk."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="ignore")
 
-    version: int = 1
+    version: int = 2
     taste_rules: List[TasteRule] = Field(default_factory=list)
     history: List[FeedbackEvent] = Field(default_factory=list)
+    # Single-level undo snapshot of ``taste_rules`` + ``history`` taken
+    # right before the most recent ``evolve``. ``None`` means there is
+    # nothing to undo.
+    undo_snapshot: Optional[Dict[str, Any]] = None
 
     # ---- helpers -----------------------------------------------------
     def find_rule(self, rule_id: str) -> Optional[TasteRule]:

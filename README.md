@@ -39,8 +39,9 @@ agent → │ your review  │ ──────────► │ PersonalEvo
 - **🧠 Typed memory** — Pydantic v2 models, JSON-schema-friendly, versioned on disk.
 - **🔌 Pluggable storage** — YAML / JSON / SQLite out of the box; bring-your-own backend.
 - **🔬 Pluggable extractors** — deterministic heuristic by default; plug an LLM with `CallableExtractor`.
-- **♻️ Self-evolution** — automatic deduplication, reinforcement on repetition, time decay.
+- **♻️ Self-evolution** — automatic deduplication, reinforcement on repetition, time decay, undo and dry-run previews.
 - **⚖️ Ranked injection** — top-N rules by weight, optionally filtered per project.
+- **🧩 Editor integrations** — export rules to `.cursorrules`, `.windsurfrules`, `CLAUDE.md` and Copilot instructions.
 - **🖥️ Zero-dep CLI** — `personal-evotaste evolve / inject / list / remove / reset / export`.
 - **🧪 Tested & typed** — pytest suite, ruff, mypy, CI on Python 3.9 → 3.12.
 - **💾 Crash-safe writes** — atomic file replacement, SQLite transactions.
@@ -93,6 +94,18 @@ personal-evotaste inject "Generate a signup page" --context "acme-landing"
 # Inspect the memory
 personal-evotaste list
 personal-evotaste export > snapshot.json
+
+# Preview a rule without changing memory
+personal-evotaste evolve --dry-run --output "..." --feedback "Prefer descriptive names"
+
+# Undo the most recent evolution
+personal-evotaste undo
+
+# Export rules into AI editor instruction files
+personal-evotaste export-rules -f cursor -o .cursorrules
+personal-evotaste export-rules -f windsurf -o .windsurfrules
+personal-evotaste export-rules -f claude -o CLAUDE.md
+personal-evotaste export-rules -f copilot -o .github/copilot-instructions.md
 ```
 
 Memory backend is auto-selected from the file extension: `.yaml` / `.json` / `.sqlite3`.
@@ -126,6 +139,7 @@ personal_evotaste/
 ```
 
 See [`docs/architecture.md`](docs/architecture.md) for the design rationale.
+See [`docs/integrations.md`](docs/integrations.md) for Cursor, Windsurf, Claude and Copilot setup.
 
 ## 🤝 Contributing
 

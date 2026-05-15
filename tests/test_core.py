@@ -74,3 +74,27 @@ def test_decay_applied(tmp_path: Path):
     # The first rule should have decayed once.
     first = [r for r in t.rules if "docstring" in r.rule.lower()][0]
     assert first.weight < w_before
+
+
+def test_evolve_dry_run_does_not_mutate(taste):
+    preview = taste.evolve("x", "Prefer calm monochrome UI", "p", dry_run=True)
+    assert "monochrome" in preview.rule
+    assert taste.rules == []
+    assert taste.memory.history == []
+
+
+def test_undo_reverts_last_evolve(yaml_memory: Path, taste):
+    taste.evolve("x", "Prefer calm monochrome UI", "p")
+    taste.evolve("y", "Avoid one-letter variable names", "p")
+    assert len(taste.rules) == 2
+    assert taste.undo() is True
+    assert len(taste.rules) == 1
+    assert "monochrome" in taste.rules[0].rule
+
+    fresh = PersonalEvoTaste(memory_path=yaml_memory)
+    assert len(fresh.rules) == 1
+    assert fresh.memory.undo_snapshot is None
+
+
+def test_undo_without_snapshot_returns_false(taste):
+    assert taste.undo() is False

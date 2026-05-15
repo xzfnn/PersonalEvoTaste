@@ -7,9 +7,11 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from pathlib import Path
 from typing import List, Optional
 
 from .core import PersonalEvoTaste
+from .exporters import SUPPORTED_FORMATS
 from .version import __version__
 
 
@@ -50,6 +52,26 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("reset", help="Wipe the memory (irreversible).")
     sub.add_parser("export", help="Print the full memory as JSON.")
+
+    p_export = sub.add_parser(
+        "export-rules",
+        help="Render rules for AI editors (Cursor, Windsurf, Claude, Copilot, ...).",
+    )
+    p_export.add_argument(
+        "--format",
+        "-f",
+        default="markdown",
+        choices=SUPPORTED_FORMATS,
+        help="Output format (default: %(default)s).",
+    )
+    p_export.add_argument("--project", default=None, help="Filter by project.")
+    p_export.add_argument("--limit", type=int, default=None, help="Maximum rules to emit.")
+    p_export.add_argument(
+        "--output",
+        "-o",
+        default=None,
+        help="Write to a file instead of stdout (e.g. .cursorrules).",
+    )
 
     return parser
 
@@ -99,6 +121,19 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     if args.command == "export":
         print(json.dumps(taste.export_dict(), ensure_ascii=False, indent=2))
+        return 0
+
+    if args.command == "export-rules":
+        rendered = taste.export_rules(
+            fmt=args.format,
+            limit=args.limit,
+            project=args.project,
+        )
+        if args.output:
+            Path(args.output).write_text(rendered, encoding="utf-8")
+            print(f"wrote {len(rendered)} chars to {args.output}")
+        else:
+            print(rendered)
         return 0
 
     parser.error(f"Unknown command: {args.command}")

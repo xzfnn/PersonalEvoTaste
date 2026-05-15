@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Iterable, List, Optional, Union
 
 from .exceptions import ConfigurationError
+from .exporters import render_rules
 from .extractors import HeuristicExtractor, RuleExtractor, find_similar_rule
 from .logging_config import get_logger
 from .models import FeedbackEvent, TasteMemory, TasteRule
@@ -104,14 +105,31 @@ class PersonalEvoTaste:
         *,
         tags: Optional[Iterable[str]] = None,
         persist: bool = True,
+        dry_run: bool = False,
     ) -> TasteRule:
-        """Distill a new rule from feedback, deduplicate, and persist."""
+        """Distill a new rule from feedback, deduplicate, and persist.
+
+        When *dry_run* is ``True`` the extraction and dedup logic run but
+        the memory is **not** mutated.  The returned rule shows what
+        *would* happen.  Useful for previewing before committing.
+        """
         new_rule = self._extractor.extract(
             agent_output=agent_output,
             user_feedback=user_feedback,
             project=project_name,
             tags=tags,
         )
+
+        if dry_run:
+            similar = find_similar_rule(new_rule, self.memory.taste_rules)
+            if similar is not None:
+                preview = similar.model_copy()
+                preview.reinforce()
+                return preview
+            return new_rule
+
+        # Take an undo snapshot *before* mutating.
+        self._take_undo_snapshot()
 
         self._apply_decay()
 
@@ -154,6 +172,26 @@ class PersonalEvoTaste:
         if persist:
             self.save()
 
+    def undo(self, *, persist: bool = True) -> bool:
+        """Revert the most recent :meth:`evolve` call.
+
+        Returns ``True`` if the undo succeeded, ``False`` if there was
+        nothing to undo.  Only one level of undo is supported.
+        """
+        snapshot = self.memory.undo_snapshot
+        if snapshot is None:
+            logger.warning("Nothing to undo")
+            return False
+        rules = [TasteRule.model_validate(r) for r in snapshot["taste_rules"]]
+        history = [FeedbackEvent.model_validate(e) for e in snapshot["history"]]
+        self.memory.taste_rules = rules
+        self.memory.history = history
+        self.memory.undo_snapshot = None
+        if persist:
+            self.save()
+        logger.info("Undo successful — reverted to %d rules", len(rules))
+        return True
+
     def save(self) -> None:
         self._storage.save(self.memory)
 
@@ -161,6 +199,13 @@ class PersonalEvoTaste:
         self.memory = self._storage.load()
 
     # ------------------------------------------------------------------
+    def _take_undo_snapshot(self) -> None:
+        """Snapshot current taste_rules + history for single-level undo."""
+        self.memory.undo_snapshot = {
+            "taste_rules": [r.model_dump(mode="json") for r in self.memory.taste_rules],
+            "history": [e.model_dump(mode="json") for e in self.memory.history],
+        }
+
     def _apply_decay(self) -> None:
         if self._decay <= 0:
             return
@@ -173,6 +218,24 @@ class PersonalEvoTaste:
     # ------------------------------------------------------------------
     def export_dict(self) -> dict:
         return self.memory.model_dump(mode="json")
+
+    def export_rules(
+        self,
+        fmt: str = "markdown",
+        *,
+        limit: Optional[int] = None,
+        project: Optional[str] = None,
+        header: str = "",
+    ) -> str:
+        """Render the top-N rules as an editor-ready string.
+
+        See :func:`personal_evotaste.exporters.render_rules` for the list
+        of supported formats. Use this to produce ``.cursorrules``,
+        ``.windsurfrules``, ``CLAUDE.md`` or Copilot instructions from
+        the same evolved memory.
+        """
+        rules = self.top_rules(limit=limit or 1_000_000, project=project)
+        return render_rules(rules, fmt=fmt, header=header)
 
     @classmethod
     def from_file(cls, path: Union[str, Path]) -> PersonalEvoTaste:

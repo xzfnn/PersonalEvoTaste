@@ -8,8 +8,7 @@ from __future__ import annotations
 
 import re
 from abc import ABC, abstractmethod
-from difflib import SequenceMatcher
-from typing import Callable, Iterable, List, Optional
+from typing import Callable, Iterable, Optional
 
 from .exceptions import ExtractionError
 from .models import TasteRule
@@ -19,9 +18,6 @@ _STOPWORDS = {
     "but", "this", "that", "it", "i", "we", "you", "please", "could", "would",
     "should", "make", "do", "be", "more", "less", "very", "too", "really",
 }
-
-_SIMILARITY_THRESHOLD = 0.78
-
 
 class RuleExtractor(ABC):
     """Abstract base class for rule extractors."""
@@ -108,19 +104,4 @@ class CallableExtractor(RuleExtractor):
         )
 
 
-# ---------------------------------------------------------------------------
-# Deduplication helpers
-# ---------------------------------------------------------------------------
-
-def find_similar_rule(new_rule: TasteRule, existing: List[TasteRule]) -> Optional[TasteRule]:
-    """Return the closest existing rule above the similarity threshold."""
-    best: Optional[TasteRule] = None
-    best_ratio = 0.0
-    for r in existing:
-        ratio = SequenceMatcher(None, r.rule.lower(), new_rule.rule.lower()).ratio()
-        if ratio > best_ratio:
-            best_ratio = ratio
-            best = r
-    if best is not None and best_ratio >= _SIMILARITY_THRESHOLD:
-        return best
-    return None
+from .similarity import find_similar_rule  # noqa: E402,F401  (backward-compatible re-export)
