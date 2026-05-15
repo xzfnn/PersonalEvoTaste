@@ -1,0 +1,69 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "personal-evotaste"
+version = "0.1.0"
+description = "Developer personal-taste memory & self-evolution engine for AI coding agents."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.9"
+authors = [
+    { name = "PersonalEvoTaste Contributors" },
+]
+keywords = ["ai", "agents", "memory", "preferences", "self-evolution", "prompt-engineering"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "pyyaml>=6.0",
+    "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.4",
+    "mypy>=1.6",
+]
+
+[project.urls]
+Homepage = "https://github.com/your-org/PersonalEvoTaste"
+Issues = "https://github.com/your-org/PersonalEvoTaste/issues"
+Documentation = "https://github.com/your-org/PersonalEvoTaste#readme"
+Changelog = "https://github.com/your-org/PersonalEvoTaste/blob/main/CHANGELOG.md"
+
+[project.scripts]
+personal-evotaste = "personal_evotaste.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["personal_evotaste*"]
+exclude = ["tests*", "examples*"]
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-markers"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.9"
+strict = false
+ignore_missing_imports = true
