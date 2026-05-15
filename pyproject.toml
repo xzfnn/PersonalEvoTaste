@@ -61,7 +61,15 @@ target-version = "py39"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM"]
-ignore = ["E501"]
+ignore = ["E501", "UP006", "UP007", "UP035"]
+
+[tool.ruff.lint.pyupgrade]
+# We keep `Optional[X]` / `List[X]` style for Python 3.9 runtime support.
+keep-runtime-typing = true
+
+[tool.ruff.lint.flake8-bugbear]
+# Pydantic's `Field(...)` is safe to use as a default value.
+extend-immutable-calls = ["pydantic.Field"]
 
 [tool.mypy]
 python_version = "3.9"

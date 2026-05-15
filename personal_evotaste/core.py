@@ -175,5 +175,5 @@ class PersonalEvoTaste:
         return self.memory.model_dump(mode="json")
 
     @classmethod
-    def from_file(cls, path: Union[str, Path]) -> "PersonalEvoTaste":
+    def from_file(cls, path: Union[str, Path]) -> PersonalEvoTaste:
         return cls(memory_path=path)
